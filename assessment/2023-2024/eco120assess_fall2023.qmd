@@ -1,0 +1,132 @@
+---
+title: ECO 120 General Education Assessment
+subtitle: 2023-2024
+author: Department of Economics
+format: 
+  docx:  
+    reference-doc: eco120assess_template.docx
+  pdf: default
+---
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| include: false
+library(fredr)
+library(tidyverse)
+library(tsibble)
+library(scales)
+fredr_set_key("78b5d3224352efa1010b15f5f0ed0a71") 
+
+fred_pretty <- function(series_id, pretty_name, frequency="m") {
+  df <- fredr(series_id, frequency = frequency) %>%
+    rename(variable = series_id) %>%
+    mutate(variable = str_replace(variable, series_id, pretty_name)) %>%
+    select(date, variable, value) %>%
+    as_tibble(index=date, key=variable)
+  return(df)
+}
+```
+
+**Consider the following figures for the questions that follow**
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-interestrates
+#| fig-cap: "Interest Rates in U.S. and Euro Area over 2022"
+#| fig-cap-location: top
+#| fig-width: 8
+#| fig-height: 4
+
+euro_df <- fred_pretty("IR3TIB01EZM156N", "Euro-area Interbank Average 90-Day Interest Rate")
+us_df <- fred_pretty("FEDFUNDS", "U.S. Federal Funds Rate")
+interestrates_df <- bind_rows(euro_df, us_df)
+
+interestrates_df %>%
+  filter(date>=as_date("2022-01-01")) %>%
+  filter(date<=as_date("2023-01-01")) %>%
+  ggplot(aes(x=date, y=value, color=variable)) +
+    geom_line(size=1.5) +
+    geom_point(size=2) +
+    theme_bw() +
+    scale_y_continuous(label=percent_format(scale=1), breaks=seq(-1,6,by=1)) +
+    scale_color_manual(values=c("dodgerblue4", "firebrick4")) +
+    scale_x_date(date_labels="%b\n%Y") +
+    theme(legend.position = "bottom", legend.direction = "vertical", legend.justification = "left", text=element_text(size=16)) +
+    theme(legend.margin=margin(0,0,0,0), legend.box.margin=margin(-25,0,0,0)) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "null"), panel.margin = unit(c(0, 0, 0, 0), "null")) +
+    labs(x="", y="", color="")
+```
+
+
+```{r}
+#| echo: false
+#| warning: false
+#| message: false
+#| label: fig-exchangerate
+#| fig-cap: "U.S. Dollar to Euro Spot Exchange Rate"
+#| fig-cap-location: top
+#| fig-width: 8
+#| fig-height: 4
+
+exchange_rate_df <- fred_pretty("DEXUSEU", "Exchange Rate: USD / EUR")  
+
+exchange_rate_df %>%
+  filter(date>=as_date("2022-01-01")) %>%
+  filter(date<=as_date("2023-01-01")) %>%
+  ggplot(aes(x=date, y=value)) +
+    geom_line(size=1.5, color="dodgerblue4") +
+    geom_point(size=2, color="dodgerblue4") +
+    theme_bw() +
+    scale_x_date(date_labels="%b\n%Y") +
+    scale_y_continuous(n.breaks = 7) +
+    theme(text=element_text(size=16)) +
+    theme(plot.margin = unit(c(0, 0, 0, 0), "null"), panel.margin = unit(c(0, 0, 0, 0), "null")) +
+    labs(x="", y="Exchange Rate: USD / EUR")
+```
+
+{{< pagebreak >}}
+
+## Assessment Questions
+
+1.  As shown in @fig-interestrates, from January 2022 through October 2022, both the European Central Bank and the United States Federal Reserve raised interest rates in their areas, but during this time, the increase was larger in the United States. Describe and illustrate the impact on the equilibrium exchange rate between Euros (EUR) and U.S. Dollars (USD).
+<p/><p/>
+**Answer:**
+Two things happen: Financial investors in the Euro area make more financial investments in the United States. This increases the demand for USD, which also implies an increase in supply of EUR. Secondly, financial investors in the United States also desire to make more financial investments in the U.S., so they pull out some of their financial investments in the Euro area. This leads to a decrease in demand for EUR, which also implies a decrease in supply of USD. The figure below shows that in equilibrium, there will be a depreciation of the EUR relative to the USD / appreciation of the USD relative to the EUR.
+<p/><p/>
+![EUR to USD Market for Currencies](./exchangerates-twoshifts-USD-EUR-2.png){width=85%}
+
+1.  @fig-exchangerate shows the actual exchange rate between Euros and U.S. Dollars from December 2021 through November 2022. Does the actual change in the exchange rate match your prediction from #1?
+<p/><p/>
+**Answer:** The exchange rate depicted in @fig-exchangerate falls from January 2022 to October 2022. The exchange rate is expressed as number of U.S. Dollars per Euro, which implies this represents the value of the Euro. The Euro has depreciated over this time against the U.S. dollar, which is the prediction of the supply and demand analysis above.
+
+1.  Suppose in January 2023, the retail price of an iPhone in the U.S. was 750 USD. Suppose someone from Germany is visiting the United States and wishes to purchase the iPhone, but would like to know the price equivalence in Euros. Using the exchange rates given in @fig-exchangerate, compute the cost of that iPhone in Euros.
+<p/><p/>
+**Answer:** The exchange rate in January 2023 was 1 EUR to 1.075 USD. To convert an amount from one currency to another, multiply by either (1 EUR / 1.075 USD) or (1.075 USD / 1 EUR). Choose the fraction that has USD in the denominator, so that USD unit cancels out, leaving the EUR as the unit.
+$$ 750~USD \times \left(\frac{1~EUR}{1.075~USD}\right) = 697.67~EUR $$
+
+1.  Given your answer for the change in exchange rate in problem \#1, what will be the likely impact on U.S. imports and exports? Explain your answer.
+<p/><p/>
+**Answer:** The USD appreciated in problem \#1, which has two implications: 1) the U.S. Dollar buys more Euros than before, which makes Euro less expensive for Americans, which leads to an increase in U.S. imports from Euro-area countries; and 2) the U.S. Dollar is more expensive for Euro-area people to buy, which makes U.S. goods more expensive for them to buy, which leads to a decrease in U.S. exports. Imports increase and exports decrease.
+
+1.  Suppose the U.S. economy was at the long-run equilibrium in the market for final goods and services (i.e. aggregate supply/aggregate demand). Given your answer in #4, describe and illustrate the short-run impact that the change in imports and exports has on equilibrium real GDP and price level.
+<p/><p/>
+**Answer:** An increase in imports and a decrease in exports both cause a decrease in aggregate demand. The AD curve shifts to the left, which leads to a decrease in real GDP and a decrease in the price level, as illustrated below.
+<p/><p/>
+![AS/AD Model](./ASAD-DecreaseAD.png){width=50%}
+
+1.  Suppose elected officials in the United States see the situation that you described in #5 and want to change tax policy in such a way to bring the economy back to the full-employment real GDP (i.e. potential GDP). Make a suggestion for a change in tax policy that may accomplish this. Re-draw your answer to #4 and add on to this new graph the short-run economic impact of the change in tax policy.
+<p/><p/>
+**Answer:** Multiple types of tax policies could answer this question. <p/>
+**Tax Policy 1: Decrease in consumer taxes:** A decrease in taxes paid by consumers (eg: decrease in income taxes, sales taxes, etc.) will lead to an increase in consumption spending, which causes aggregate demand to shift back to the right. As shown in the illustration below, this causes real GDP to increase back to full-employment real GDP, and price level to return to its original value.
+<p/><p/>
+![AS/AD ModelA](./ASAD-DecreaseAD-ADRight.png){width=50%}
+<p/><p/>
+**Tax Policy 2: Decrease in business taxes:** Alternatively, the government could decrease taxes for businesses, which may lead to a rightward shift in aggregate supply. As shown in the illustration below, this causes real GDP to increase and the price level to further decrease.
+<p/><p/>
+![AS/AD Model](./ASAD-DecreaseAD-ASRight.png){width=50%}
+
+
